@@ -37,7 +37,7 @@ type LoginRequest struct {
 // @Failure 400 {object} utils.ApiResponse
 // @Failure 409 {object} utils.ApiResponse
 // @Failure 500 {object} utils.ApiResponse
-// @Router /register [post]
+// @Router /auth/register [post]
 func (h *AuthHandler) Register(c *fiber.Ctx) error {
 	var req RegisterRequest
 	if err := c.BodyParser(&req); err != nil {
@@ -75,7 +75,7 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 // @Failure 400 {object} utils.ApiResponse
 // @Failure 401 {object} utils.ApiResponse
 // @Failure 500 {object} utils.ApiResponse
-// @Router /login [post]
+// @Router /auth/login [post]
 func (h *AuthHandler) Login(c *fiber.Ctx) error {
 	var req LoginRequest
 	if err := c.BodyParser(&req); err != nil {
@@ -106,7 +106,7 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 // @Failure 401 {object} utils.ApiResponse
 // @Failure 404 {object} utils.ApiResponse
 // @Failure 500 {object} utils.ApiResponse
-// @Router /users/profile [get]
+// @Router /api/users/profile [get]
 func (h *AuthHandler) GetProfile(c *fiber.Ctx) error {
 	// Parse user_id from middleware
 	userIDf, ok := c.Locals("user_id").(int64)

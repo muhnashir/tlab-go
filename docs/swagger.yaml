@@ -103,7 +103,41 @@ info:
   title: Wallet API
   version: "1.0"
 paths:
-  /login:
+  /api/users/profile:
+    get:
+      consumes:
+      - application/json
+      description: Get the profile of the logged-in user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.ApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.User'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ApiResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Get user profile
+      tags:
+      - User
+  /auth/login:
     post:
       consumes:
       - application/json
@@ -139,7 +173,7 @@ paths:
       summary: Login user
       tags:
       - Auth
-  /register:
+  /auth/register:
     post:
       consumes:
       - application/json
@@ -253,40 +287,6 @@ paths:
       summary: Transfer funds
       tags:
       - Wallet
-  /users/profile:
-    get:
-      consumes:
-      - application/json
-      description: Get the profile of the logged-in user
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/utils.ApiResponse'
-            - properties:
-                data:
-                  $ref: '#/definitions/domain.User'
-              type: object
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/utils.ApiResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/utils.ApiResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/utils.ApiResponse'
-      security:
-      - BearerAuth: []
-      summary: Get user profile
-      tags:
-      - User
   /wallets/topup:
     post:
       consumes:

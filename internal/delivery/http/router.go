@@ -30,13 +30,16 @@ func SetupRouter(handlers *handler.AllHandlers) *fiber.App {
 	api := app.Group("/api")
 
 	// Auth Routes (Public)
-	api.Post("/register", handlers.AuthHandler.Register)
-	api.Post("/login", handlers.AuthHandler.Login)
-	api.Post("/users/login", handlers.AuthHandler.Login) // Alias for standard restful
-	api.Post("/users", handlers.AuthHandler.Register)    // Alias for standard restful
+	authGroup := api.Group("/auth")
+	authGroup.Post("/register", handlers.AuthHandler.Register)
+	authGroup.Post("/login", handlers.AuthHandler.Login)
 
 	// Protected Routes Group
-	protected := api.Group("/", middleware.JWTProtected())
+	protected := api.Group("/api", middleware.JWTProtected())
+
+	// User Routes
+	userGroup := protected.Group("/users")
+	userGroup.Get("/profile", handlers.AuthHandler.GetProfile)
 
 	// Wallet Routes
 	walletGroup := protected.Group("/wallets")
@@ -48,10 +51,6 @@ func SetupRouter(handlers *handler.AllHandlers) *fiber.App {
 	transactionGroup := protected.Group("/transactions")
 	transactionGroup.Post("/transfer", handlers.WalletHandler.Transfer)
 	transactionGroup.Get("/", handlers.WalletHandler.GetHistory) // Can act as history
-
-	// User Routes
-	userGroup := protected.Group("/users")
-	userGroup.Get("/profile", handlers.AuthHandler.GetProfile)
 
 	// Health Check
 	app.Get("/health", func(c *fiber.Ctx) error {

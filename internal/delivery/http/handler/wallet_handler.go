@@ -28,7 +28,7 @@ type TransferRequest struct {
 // @Produce json
 // @Security BearerAuth
 // @Success 200 {string} string "TopUp Not Implemented"
-// @Router /wallets/topup [post]
+// @Router /api/wallets/topup [post]
 func (h *WalletHandler) TopUp(c *fiber.Ctx) error {
 	return c.SendString("TopUp Not Implemented")
 }
