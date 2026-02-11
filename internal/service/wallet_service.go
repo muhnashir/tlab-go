@@ -84,32 +84,20 @@ func (s *DefaultWalletService) Transfer(ctx context.Context, senderUserID, recei
 		return nil, errors.New("cannot transfer to self")
 	}
 
-	// 2. Begin Database Transaction using Goqu
+	// 2. Begin Database Transaction
 	goquDb := goqu.New("mysql", s.db)
-	txDb, err := goquDb.BeginTx(ctx, nil) // Returns *goqu.TxDatabase, Error
+	txDb, err := goquDb.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	// We must defer Rollback on the goqu TxDatabase
 	defer txDb.Rollback()
 
-	// 3. Get User Wallets (Resolve UserID to WalletID)
-	// Now `txDb` is a *goqu.TxDatabase which has all methods (From, Insert, Update)
-	// and executes them on the transaction.
-
-	var senderWallet domain.Wallet
-	var receiverWallet domain.Wallet
-
-	// Fetch Sender Wallet with FOR UPDATE to lock and prevent race conditions
-	foundSender, err := txDb.From("wallets").
-		Where(goqu.C("user_id").Eq(senderUserID)).
-		ForUpdate(goqu.Wait).
-		ScanStructContext(ctx, &senderWallet)
-
+	// 3. Get and lock sender wallet (prevents race condition)
+	senderWallet, err := s.wRepo.GetWalletForUpdate(ctx, txDb, senderUserID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch sender wallet: %w", err)
 	}
-	if !foundSender {
+	if senderWallet == nil {
 		return nil, errors.New("sender wallet not found")
 	}
 
@@ -118,39 +106,28 @@ func (s *DefaultWalletService) Transfer(ctx context.Context, senderUserID, recei
 		return nil, errors.New("insufficient balance")
 	}
 
-	// Fetch Receiver Wallet
-	foundReceiver, err := txDb.From("wallets").
-		Where(goqu.C("user_id").Eq(receiverUserID)).
-		ForUpdate(goqu.Wait).
-		ScanStructContext(ctx, &receiverWallet)
-
+	// 5. Get and lock receiver wallet (prevents race condition)
+	receiverWallet, err := s.wRepo.GetWalletForUpdate(ctx, txDb, receiverUserID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch receiver wallet: %w", err)
 	}
-	if !foundReceiver {
+	if receiverWallet == nil {
 		return nil, errors.New("receiver wallet not found")
 	}
 
-	// 5. Update Balances (Atomicity)
-	// Subtract from Sender
-	_, err = txDb.Update("wallets").
-		Set(goqu.Record{"balance": senderWallet.Balance - amount}).
-		Where(goqu.C("id").Eq(senderWallet.ID)).
-		Executor().ExecContext(ctx)
-	if err != nil {
+	// 6. Update sender balance (deduct)
+	newSenderBalance := senderWallet.Balance - amount
+	if err := s.wRepo.UpdateBalanceWithTx(ctx, txDb, senderWallet.ID, newSenderBalance); err != nil {
 		return nil, fmt.Errorf("failed to update sender balance: %w", err)
 	}
 
-	// Add to Receiver
-	_, err = txDb.Update("wallets").
-		Set(goqu.Record{"balance": receiverWallet.Balance + amount}).
-		Where(goqu.C("id").Eq(receiverWallet.ID)).
-		Executor().ExecContext(ctx)
-	if err != nil {
+	// 7. Update receiver balance (add)
+	newReceiverBalance := receiverWallet.Balance + amount
+	if err := s.wRepo.UpdateBalanceWithTx(ctx, txDb, receiverWallet.ID, newReceiverBalance); err != nil {
 		return nil, fmt.Errorf("failed to update receiver balance: %w", err)
 	}
 
-	// 6. Insert Transaction Record
+	// 8. Create transaction record
 	now := time.Now()
 	transaction := &domain.Transaction{
 		SenderWalletID:   &senderWallet.ID,
@@ -161,27 +138,11 @@ func (s *DefaultWalletService) Transfer(ctx context.Context, senderUserID, recei
 		UpdatedAt:        now,
 	}
 
-	result, err := txDb.Insert("transactions").
-		Rows(goqu.Record{
-			"sender_wallet_id":   transaction.SenderWalletID,
-			"receiver_wallet_id": transaction.ReceiverWalletID,
-			"amount":             transaction.Amount,
-			"status":             transaction.Status,
-			"created_at":         transaction.CreatedAt,
-			"updated_at":         transaction.UpdatedAt,
-		}).
-		Executor().ExecContext(ctx)
-	if err != nil {
+	if err := s.tRepo.CreateWithTx(ctx, txDb, transaction); err != nil {
 		return nil, fmt.Errorf("failed to create transaction record: %w", err)
 	}
 
-	// Get inserted ID
-	id, err := result.LastInsertId()
-	if err == nil {
-		transaction.ID = id
-	}
-
-	// 7. Commit Transaction
+	// 9. Commit transaction
 	if err := txDb.Commit(); err != nil {
 		return nil, fmt.Errorf("failed to commit transaction: %w", err)
 	}

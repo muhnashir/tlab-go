@@ -68,6 +68,7 @@ type WalletRepository interface {
 // TransactionRepository defines methods for interacting with transaction data
 type TransactionRepository interface {
 	Create(ctx context.Context, transaction *Transaction) error
+	CreateWithTx(ctx context.Context, tx interface{}, transaction *Transaction) error
 	GetByID(ctx context.Context, id int64) (*Transaction, error)
 	GetByWalletID(ctx context.Context, walletID int64, limit, offset int) ([]Transaction, error)
 	UpdateStatus(ctx context.Context, id int64, status TransactionStatus) error

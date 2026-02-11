@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"wallet-api/internal/domain"
 
 	"github.com/doug-martin/goqu/v9"
@@ -20,8 +21,14 @@ func NewMysqlTransactionRepository(db *sql.DB) domain.TransactionRepository {
 }
 
 // CreateWithTx creates a transaction record within a database transaction context
-func (r *MysqlTransactionRepo) CreateWithTx(ctx context.Context, tx *goqu.TxDatabase, transaction *domain.Transaction) error {
-	result, err := tx.Insert("transactions").
+func (r *MysqlTransactionRepo) CreateWithTx(ctx context.Context, tx interface{}, transaction *domain.Transaction) error {
+	// Cast tx to *goqu.TxDatabase
+	txDb, ok := tx.(*goqu.TxDatabase)
+	if !ok {
+		return errors.New("invalid transaction type")
+	}
+
+	result, err := txDb.Insert("transactions").
 		Rows(goqu.Record{
 			"sender_wallet_id":   transaction.SenderWalletID,
 			"receiver_wallet_id": transaction.ReceiverWalletID,
