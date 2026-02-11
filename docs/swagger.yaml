@@ -198,7 +198,7 @@ paths:
       summary: Register a new user
       tags:
       - Auth
-  /transactions:
+  /transactions/history:
     get:
       consumes:
       - application/json

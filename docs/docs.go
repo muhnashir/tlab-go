@@ -125,7 +125,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/transactions": {
+        "/transactions/history": {
             "get": {
                 "security": [
                     {

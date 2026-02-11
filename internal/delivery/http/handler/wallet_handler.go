@@ -115,7 +115,7 @@ func (h *WalletHandler) Transfer(c *fiber.Ctx) error {
 // @Success 200 {object} utils.ApiResponse{data=[]domain.Transaction}
 // @Failure 401 {object} utils.ApiResponse
 // @Failure 500 {object} utils.ApiResponse
-// @Router /transactions [get]
+// @Router /transactions/history [get]
 func (h *WalletHandler) GetHistory(c *fiber.Ctx) error {
 	userID, ok := c.Locals("user_id").(int64)
 	if !ok {

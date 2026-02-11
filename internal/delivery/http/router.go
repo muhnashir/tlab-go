@@ -50,7 +50,7 @@ func SetupRouter(handlers *handler.AllHandlers) *fiber.App {
 	// Transaction Routes
 	transactionGroup := protected.Group("/transactions")
 	transactionGroup.Post("/transfer", handlers.WalletHandler.Transfer)
-	transactionGroup.Get("/", handlers.WalletHandler.GetHistory) // Can act as history
+	transactionGroup.Get("/history", handlers.WalletHandler.GetHistory) // Can act as history
 
 	// Health Check
 	app.Get("/health", func(c *fiber.Ctx) error {

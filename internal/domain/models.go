@@ -35,13 +35,13 @@ const (
 
 // Transaction represents a financial transaction between wallets
 type Transaction struct {
-	ID               int64             `json:"id" goqu:"skipinsert"`
-	SenderWalletID   *int64            `json:"sender_wallet_id"`   // Nullable if system sends money
-	ReceiverWalletID *int64            `json:"receiver_wallet_id"` // Nullable if withdrawing to external
-	Amount           float64           `json:"amount" validate:"required,gt=0"`
-	Status           TransactionStatus `json:"status"`
-	CreatedAt        time.Time         `json:"created_at" goqu:"skipinsert"`
-	UpdatedAt        time.Time         `json:"updated_at" goqu:"skipinsert"`
+	ID               int64             `json:"id" db:"id" goqu:"skipinsert"`
+	SenderWalletID   *int64            `json:"sender_wallet_id" db:"sender_wallet_id"`     // Nullable if system sends money
+	ReceiverWalletID *int64            `json:"receiver_wallet_id" db:"receiver_wallet_id"` // Nullable if withdrawing to external
+	Amount           float64           `json:"amount" db:"amount" validate:"required,gt=0"`
+	Status           TransactionStatus `json:"status" db:"status"`
+	CreatedAt        time.Time         `json:"created_at" db:"created_at" goqu:"skipinsert"`
+	UpdatedAt        time.Time         `json:"updated_at" db:"created_at" goqu:"skipinsert"`
 }
 
 // UserRepository defines methods for interacting with user data
