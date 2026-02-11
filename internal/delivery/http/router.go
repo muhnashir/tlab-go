@@ -35,7 +35,7 @@ func SetupRouter(handlers *handler.AllHandlers) *fiber.App {
 	authGroup.Post("/login", handlers.AuthHandler.Login)
 
 	// Protected Routes Group
-	protected := api.Group("/api", middleware.JWTProtected())
+	protected := api.Group("/", middleware.JWTProtected())
 
 	// User Routes
 	userGroup := protected.Group("/users")
@@ -45,7 +45,7 @@ func SetupRouter(handlers *handler.AllHandlers) *fiber.App {
 	walletGroup := protected.Group("/wallets")
 	// Assuming balance endpoint logic exists or will be added to handler
 	walletGroup.Post("/topup", handlers.WalletHandler.TopUp)
-	// walletGroup.Get("/balance", handlers.WalletHandler.GetBalance) // Example if implemented
+	walletGroup.Get("/balance", handlers.WalletHandler.GetBalance)
 
 	// Transaction Routes
 	transactionGroup := protected.Group("/transactions")

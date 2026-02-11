@@ -95,3 +95,32 @@ func (h *WalletHandler) GetHistory(c *fiber.Ctx) error {
 
 	return utils.Success(c, fiber.StatusOK, "History retrieved", history)
 }
+
+// GetBalance godoc
+// @Summary Get user balance
+// @Description Get current balance of logged-in user
+// @Tags Wallet
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} utils.ApiResponse{data=domain.Wallet}
+// @Failure 401 {object} utils.ApiResponse
+// @Failure 404 {object} utils.ApiResponse
+// @Failure 500 {object} utils.ApiResponse
+// @Router /wallets/balance [get]
+func (h *WalletHandler) GetBalance(c *fiber.Ctx) error {
+	userID, ok := c.Locals("user_id").(int64)
+	if !ok {
+		return utils.Unauthorized(c, "Invalid user session")
+	}
+
+	wallet, err := h.Service.GetBalance(c.Context(), userID)
+	if err != nil {
+		return utils.InternalServerError(c, "Failed to retrieve balance", err.Error())
+	}
+	if wallet == nil {
+		return utils.NotFound(c, "Wallet not found")
+	}
+
+	return utils.Success(c, fiber.StatusOK, "Balance retrieved", wallet)
+}

@@ -1,0 +1,10 @@
+database/data
+logger/mongo
+mongo
+go.sum
+tmp
+bin
+.env.ssm
+.air.toml
+.env
+local.env

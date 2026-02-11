@@ -106,7 +106,7 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 // @Failure 401 {object} utils.ApiResponse
 // @Failure 404 {object} utils.ApiResponse
 // @Failure 500 {object} utils.ApiResponse
-// @Router /api/users/profile [get]
+// @Router /users/profile [get]
 func (h *AuthHandler) GetProfile(c *fiber.Ctx) error {
 	// Parse user_id from middleware
 	userIDf, ok := c.Locals("user_id").(int64)

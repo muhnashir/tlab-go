@@ -17,11 +17,11 @@ type User struct {
 
 // Wallet represents a digital wallet associated with a user
 type Wallet struct {
-	ID        int64     `json:"id" goqu:"skipinsert"`
-	UserID    int64     `json:"user_id" validate:"required"`
-	Balance   float64   `json:"balance"`
-	CreatedAt time.Time `json:"created_at" goqu:"skipinsert"`
-	UpdatedAt time.Time `json:"updated_at" goqu:"skipinsert"`
+	ID        int64     `json:"id" db:"id" goqu:"skipinsert"`
+	UserID    int64     `json:"user_id" validate:"required" db:"user_id"`
+	Balance   float64   `json:"balance" db:"balance"`
+	CreatedAt time.Time `json:"created_at" db:"created_at" goqu:"skipinsert"`
+	UpdatedAt time.Time `json:"updated_at" db:"updated_at" goqu:"skipinsert"`
 }
 
 // TransactionStatus defines possible statuses for a transaction
@@ -82,4 +82,5 @@ type TransactionService interface {
 	TopUp(ctx context.Context, userID int64, amount float64) (*Wallet, error)
 	Transfer(ctx context.Context, senderID, receiverID int64, amount float64) (*Transaction, error)
 	GetHistory(ctx context.Context, userID int64, page, limit int) ([]Transaction, error)
+	GetBalance(ctx context.Context, userID int64) (*Wallet, error)
 }

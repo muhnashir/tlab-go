@@ -162,3 +162,18 @@ func (s *DefaultWalletService) GetHistory(ctx context.Context, userID int64, pag
 	offset := (page - 1) * limit
 	return s.tRepo.GetByWalletID(ctx, wallet.ID, limit, offset)
 }
+
+func (s *DefaultWalletService) GetBalance(ctx context.Context, userID int64) (*domain.Wallet, error) {
+	wallet, err := s.wRepo.GetByUserID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	if wallet == nil {
+		// Return default wallet with 0 balance
+		return &domain.Wallet{
+			UserID:  userID,
+			Balance: 0,
+		}, nil
+	}
+	return wallet, nil
+}
