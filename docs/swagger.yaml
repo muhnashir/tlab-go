@@ -1,0 +1,312 @@
+basePath: /api
+definitions:
+  domain.Transaction:
+    properties:
+      amount:
+        type: number
+      created_at:
+        type: string
+      id:
+        type: integer
+      receiver_wallet_id:
+        description: Nullable if withdrawing to external
+        type: integer
+      sender_wallet_id:
+        description: Nullable if system sends money
+        type: integer
+      status:
+        $ref: '#/definitions/domain.TransactionStatus'
+      updated_at:
+        type: string
+    required:
+    - amount
+    type: object
+  domain.TransactionStatus:
+    enum:
+    - pending
+    - success
+    - failed
+    type: string
+    x-enum-varnames:
+    - TransactionStatusPending
+    - TransactionStatusSuccess
+    - TransactionStatusFailed
+  domain.User:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      password:
+        minLength: 6
+        type: string
+      updated_at:
+        type: string
+    required:
+    - email
+    - name
+    - password
+    type: object
+  handler.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  handler.RegisterRequest:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        minLength: 6
+        type: string
+    required:
+    - email
+    - name
+    - password
+    type: object
+  handler.TransferRequest:
+    properties:
+      amount:
+        type: number
+      receiver_user_id:
+        type: integer
+    required:
+    - amount
+    - receiver_user_id
+    type: object
+  utils.ApiResponse:
+    properties:
+      code:
+        type: integer
+      data: {}
+      error: {}
+      message:
+        type: string
+      success:
+        type: boolean
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: RESTful API for E-Wallet Application
+  title: Wallet API
+  version: "1.0"
+paths:
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Login with email and password to receive JWT token
+      parameters:
+      - description: Login Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ApiResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ApiResponse'
+      summary: Login user
+      tags:
+      - Auth
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user with name, email, and password
+      parameters:
+      - description: Register Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ApiResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/utils.ApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ApiResponse'
+      summary: Register a new user
+      tags:
+      - Auth
+  /transactions:
+    get:
+      consumes:
+      - application/json
+      description: Get transaction history for logged-in user with pagination
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.ApiResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/domain.Transaction'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Get transaction history
+      tags:
+      - Wallet
+  /transactions/transfer:
+    post:
+      consumes:
+      - application/json
+      description: Transfer funds from logged-in user to another user
+      parameters:
+      - description: Transfer Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.TransferRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.ApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.Transaction'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ApiResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Transfer funds
+      tags:
+      - Wallet
+  /users/profile:
+    get:
+      consumes:
+      - application/json
+      description: Get the profile of the logged-in user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.ApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.User'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ApiResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Get user profile
+      tags:
+      - User
+  /wallets/topup:
+    post:
+      consumes:
+      - application/json
+      description: Top up wallet balance (mock implementation)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: TopUp Not Implemented
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Top up wallet
+      tags:
+      - Wallet
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
