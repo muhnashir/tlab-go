@@ -14,7 +14,7 @@ import (
 // @title Wallet API
 // @version 1.0
 // @description RESTful API for E-Wallet Application
-// @host localhost:8080
+// @host localhost:3000
 // @BasePath /api
 // @securityDefinitions.apikey BearerAuth
 // @in header
@@ -39,7 +39,7 @@ func main() {
 	// 5. Start Server
 	port := os.Getenv("APP_PORT")
 	if port == "" {
-		port = "8080" // Default port if not specified
+		port = "3000" // Default port if not specified
 	}
 
 	log.Printf("Server is starting on port %s...", port)

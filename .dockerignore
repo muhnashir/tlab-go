@@ -1,0 +1,16 @@
+# Git
+.git
+.gitignore
+
+# Development
+.env
+.air.toml
+tmp/
+.idea/
+
+# Documentation (README files only, keep docs/ for Swagger)
+*.md
+README.md
+
+# Test files
+*_test.go

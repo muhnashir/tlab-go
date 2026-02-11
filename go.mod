@@ -1,6 +1,6 @@
 module wallet-api
 
-go 1.25.6
+go 1.24.0
 
 require (
 	github.com/doug-martin/goqu/v9 v9.19.0

@@ -1,10 +1,56 @@
+# Environment Variables
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+.env.ssm
+local.env
+
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go.work
+coverage.txt
+coverage.out
+
+# Build artifacts
+bin/
+tmp/
+dist/
+build/
+
+# Database
 database/data
 logger/mongo
-mongo
-go.sum
-tmp
-bin
-.env.ssm
+mongo/
+*.db
+*.sql.gz
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Air (Live Reload)
 .air.toml
-.env
-local.env
+tmp/
+
+# Logs
+*.log
+logs/
+
+# Docker
+docker-compose.override.yml
+
+# OS
+Thumbs.db
+.DS_Store
