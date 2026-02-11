@@ -56,9 +56,12 @@ type UserRepository interface {
 // WalletRepository defines methods for interacting with wallet data
 type WalletRepository interface {
 	Create(ctx context.Context, wallet *Wallet) error
+	CreateWithTx(ctx context.Context, tx interface{}, wallet *Wallet) error // For transaction support
 	GetByID(ctx context.Context, id int64) (*Wallet, error)
 	GetByUserID(ctx context.Context, userID int64) (*Wallet, error)
-	UpdateBalance(ctx context.Context, id int64, amount float64) error // Atomic update
+	GetWalletForUpdate(ctx context.Context, tx interface{}, userID int64) (*Wallet, error) // For locking
+	UpdateBalance(ctx context.Context, id int64, amount float64) error                     // Atomic update
+	UpdateBalanceWithTx(ctx context.Context, tx interface{}, walletID int64, newBalance float64) error
 	Delete(ctx context.Context, id int64) error
 }
 

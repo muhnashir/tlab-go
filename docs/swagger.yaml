@@ -90,6 +90,14 @@ definitions:
     - name
     - password
     type: object
+  handler.TopUpRequest:
+    description: Top up wallet balance (mock implementation)
+    properties:
+      amount:
+        type: number
+    required:
+    - amount
+    type: object
   handler.TransferRequest:
     properties:
       amount:
@@ -118,23 +126,6 @@ info:
   title: Wallet API
   version: "1.0"
 paths:
-  /api/wallets/topup:
-    post:
-      consumes:
-      - application/json
-      description: Top up wallet balance (mock implementation)
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: TopUp Not Implemented
-          schema:
-            type: string
-      security:
-      - BearerAuth: []
-      summary: Top up wallet
-      tags:
-      - Wallet
   /auth/login:
     post:
       consumes:
@@ -351,6 +342,47 @@ paths:
       security:
       - BearerAuth: []
       summary: Get user balance
+      tags:
+      - Wallet
+  /wallets/topup:
+    post:
+      consumes:
+      - application/json
+      description: Top up wallet balance for logged-in user
+      parameters:
+      - description: TopUp Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.TopUpRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.ApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.Wallet'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ApiResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Top up wallet
       tags:
       - Wallet
 securityDefinitions:

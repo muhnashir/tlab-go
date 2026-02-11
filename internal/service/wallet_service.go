@@ -30,8 +30,49 @@ func NewWalletService(db *sql.DB, wRepo domain.WalletRepository, tRepo domain.Tr
 }
 
 func (s *DefaultWalletService) TopUp(ctx context.Context, userID int64, amount float64) (*domain.Wallet, error) {
-	// Not implemented in this step request
-	return nil, nil
+	if amount <= 0 {
+		return nil, errors.New("amount must be greater than 0")
+	}
+
+	goquDb := goqu.New("mysql", s.db)
+	txDb, err := goquDb.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer txDb.Rollback()
+
+	// 1. Try to fetch existing wallet with lock (using repository)
+	wallet, err := s.wRepo.GetWalletForUpdate(ctx, txDb, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check/lock wallet: %w", err)
+	}
+
+	if wallet == nil {
+		// 2a. Create new wallet if not exists (using repository)
+		wallet = &domain.Wallet{
+			UserID:    userID,
+			Balance:   amount,
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		}
+		if err := s.wRepo.CreateWithTx(ctx, txDb, wallet); err != nil {
+			return nil, fmt.Errorf("failed to create wallet: %w", err)
+		}
+	} else {
+		// 2b. Update existing wallet (using repository)
+		newBalance := wallet.Balance + amount
+		if err := s.wRepo.UpdateBalanceWithTx(ctx, txDb, wallet.ID, newBalance); err != nil {
+			return nil, fmt.Errorf("failed to update wallet balance: %w", err)
+		}
+		wallet.Balance = newBalance
+		wallet.UpdatedAt = time.Now()
+	}
+
+	if err := txDb.Commit(); err != nil {
+		return nil, fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	return wallet, nil
 }
 
 func (s *DefaultWalletService) Transfer(ctx context.Context, senderUserID, receiverUserID int64, amount float64) (*domain.Transaction, error) {
