@@ -10,11 +10,21 @@ help: ## Show this help message
 	@echo '$(BLUE)Available commands:$(NC)'
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-15s$(NC) %s\n", $$1, $$2}'
 
-build: ## Build Docker images
+check-env: ## Check if .env exists, create from .env.example if not
+	@if [ ! -f .env ]; then \
+		echo "$(BLUE).env file not found. Creating from .env.example...$(NC)"; \
+		cp .env.example .env; \
+		echo "$(GREEN).env file created! Please review and update the values if needed.$(NC)"; \
+	fi
+
+setup: check-env ## Initial setup (create .env from .env.example)
+	@echo "$(GREEN)Setup complete! You can now run 'make up' to start the services.$(NC)"
+
+build: check-env ## Build Docker images
 	@echo "$(BLUE)Building Docker images...$(NC)"
 	docker-compose build --no-cache
 
-up: ## Start all services
+up: check-env ## Start all services
 	@echo "$(BLUE)Starting services...$(NC)"
 	docker-compose up -d
 	@echo "$(GREEN)Services started!$(NC)"

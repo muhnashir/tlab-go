@@ -121,6 +121,22 @@ Proyek ini menggunakan **Clean Architecture** dengan layer berikut:
 
 Docker adalah cara tercepat dan termudah untuk menjalankan proyek ini karena semua dependensi sudah dikemas dalam container.
 
+#### Quick Start (3 Langkah)
+
+```bash
+# 1. Clone repository
+git clone <repository-url>
+cd tlab-go
+
+# 2. Jalankan aplikasi (otomatis membuat .env dari .env.example)
+make up
+
+# 3. Akses aplikasi
+curl http://localhost:3000/health
+```
+
+#### Setup Detail
+
 #### 1. Clone Repository
 
 ```bash
@@ -128,25 +144,37 @@ git clone <repository-url>
 cd tlab-go
 ```
 
-#### 2. Setup Environment Variables
+#### 2. Setup Environment Variables (Opsional)
+
+**File `.env` akan otomatis dibuat dari `.env.example` saat menjalankan `make up`.**
+
+Jika ingin mengubah konfigurasi default:
 
 ```bash
-# Salin file .env.example menjadi .env
+# Buat .env secara manual (opsional)
 cp .env.example .env
 
-# Edit file .env sesuai kebutuhan (opsional, sudah ada default values)
+# Edit file .env sesuai kebutuhan
 nano .env
+```
+
+Atau gunakan perintah setup:
+
+```bash
+make setup  # Membuat .env dari .env.example
 ```
 
 #### 3. Build dan Jalankan dengan Docker Compose
 
 ```bash
-# Menggunakan Make (lebih mudah)
+# Menggunakan Make (otomatis membuat .env jika belum ada)
 make up
 
 # Atau menggunakan docker-compose langsung
 docker-compose up -d
 ```
+
+> **💡 Tips**: Perintah `make up` akan otomatis membuat file `.env` dari `.env.example` jika file `.env` belum ada.
 
 #### 4. Verifikasi Service Berjalan
 
@@ -162,13 +190,14 @@ make logs
 docker-compose logs -f
 
 # Test API
-curl http://localhost:3000/api/health
+curl http://localhost:3000/health
 ```
 
 #### 5. Perintah Docker Lainnya
 
 ```bash
 make help          # Lihat semua perintah yang tersedia
+make setup         # Setup awal (buat .env dari .env.example)
 make down          # Stop semua service
 make restart       # Restart service
 make logs-app      # Lihat logs aplikasi saja
